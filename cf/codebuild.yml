@@ -1,8 +1,7 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Description: Build Blender as Python module using CodeBuild
 
 Parameters:
-
   GitHubSourceRepo:
     Type: String
     Description: The GitHub repository URL for the source code
@@ -18,7 +17,6 @@ Parameters:
     Type: String
 
 Resources:
-
   CodeBuildAccessPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -61,7 +59,7 @@ Resources:
         Location: !Ref GitHubSourceRepo
         BuildSpec: buildspec/blender-whl.yml
       Environment:
-        ComputeType: BUILD_GENERAL1_LARGE         
+        ComputeType: BUILD_GENERAL1_LARGE
         Image: aws/codebuild/standard:7.0
         Type: LINUX_CONTAINER
         EnvironmentVariables:

@@ -1,26 +1,26 @@
 version: 0.2
 phases:
-    install:
-        runtime-versions:
-        python: 3.12
-        commands:
-            - apt-get update -y -q
-            - apt-get install -y -q python3.12 python3.12-dev python3.12-distutils
-            - apt-get install -y build-essential git cmake ninja-build git-lfs
-    pre_build:
-        commands:
-        - git lfs install --skip-smudge
-        - git clone --depth 1 "$BLENDER_REPO_URL" blender-source
-        - cd blender-source
-        - sudo ./build_files/build_environment/install_linux_packages.py --all
-        - ./build_files/utils/make_update.py --use-linux-libraries
-        - export PYTHON_VERSION=3.12
-        - export WITH_LIBS_PRECOMPILED=OFF
-        - make bpy -j$(nproc)
-    build:
-        commands:
-        - python3.12 ./build_files/utils/make_bpy_wheel.py ../build_linux_bpy/bin/
-        - mv ../bpy-*.whl ../blender_bpy_module.whl
-    post_build:
-        commands:
-        - echo "Build complete."
+  install:
+    runtime-versions:
+    python: 3.12
+    commands:
+      - apt-get update -y -q
+      - apt-get install -y -q python3.12 python3.12-dev python3.12-distutils
+      - apt-get install -y build-essential git cmake ninja-build git-lfs
+  pre_build:
+    commands:
+      - git lfs install --skip-smudge
+      - git clone --depth 1 "$BLENDER_REPO_URL" blender-source
+      - cd blender-source
+      - sudo ./build_files/build_environment/install_linux_packages.py --all
+      - ./build_files/utils/make_update.py --use-linux-libraries
+      - export PYTHON_VERSION=3.12
+      - export WITH_LIBS_PRECOMPILED=OFF
+      - make bpy -j$(nproc)
+  build:
+    commands:
+      - python3.12 ./build_files/utils/make_bpy_wheel.py ../build_linux_bpy/bin/
+      - mv ../bpy-*.whl ../blender_bpy_module.whl
+  post_build:
+    commands:
+      - echo "Build complete."
