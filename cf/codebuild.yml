@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Build Blender as Python module using CodeBuild
+
+Parameters:
+
+  GitHubSourceRepo:
+    Type: String
+    Description: The GitHub repository URL for the source code
+    Default: https://github.com/darkrelics/blender-wheel.git
+
+  BlenderRepoURL:
+    Description: Git URL of the Blender repository to build
+    Type: String
+    Default: https://projects.blender.org/blender/blender.git
+
+  OutputBucketName:
+    Description: S3 Bucket name for output artifact
+    Type: String
+
+Resources:
+
+  CodeBuildAccessPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: "Managed policy for CodeBuild to access logs and S3"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "logs:CreateLogGroup"
+              - "logs:CreateLogStream"
+              - "logs:PutLogEvents"
+            Resource: "*"
+          - Effect: Allow
+            Action: "s3:*"
+            Resource:
+              - !Sub "arn:aws:s3:::${S3BucketName}"
+              - !Sub "arn:aws:s3:::${S3BucketName}/*"
+
+  CodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: "/"
+      ManagedPolicyArns:
+        - !Ref CodeBuildAccessPolicy
+
+  BlenderWhlBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: Blender-Whl-Build
+      Source:
+        Type: GITHUB
+        Location: !Ref GitHubSourceRepo
+        BuildSpec: buildspec/blender-whl.yml
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE         
+        Image: aws/codebuild/standard:7.0
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: BLENDER_REPO_URL
+            Value: !Ref BlenderRepoURL
+      ServiceRole: !GetAtt CodeBuildServiceRole.Arn
+      Artifacts:
+        Type: S3
+        Location: !Ref OutputBucketName
+        Packaging: NONE
+        Name: blender_bpy_module.whl
+      Cache:
+        Type: NO_CACHE
+      TimeoutInMinutes: 60
