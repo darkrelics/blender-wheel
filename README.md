@@ -25,7 +25,7 @@ The Blender wheel package provides the Blender Python API (bpy) as an importable
 ### Using the AWS Console
 
 1. Navigate to the CloudFormation console in your AWS account
-2. Create a new stack and upload the `codebuild.yml` file
+2. Create a new stack and upload the `cf/codebuild.yml` file
 3. Provide the required parameters:
    - GitHub repository URL
    - Blender repository URL (default is set to the official Blender repo)
@@ -38,7 +38,7 @@ The Blender wheel package provides the Blender Python API (bpy) as an importable
 ```bash
 aws cloudformation create-stack \
   --stack-name blender-wheel-build \
-  --template-body file://codebuild.yml \
+  --template-body file://cf/codebuild.yml \
   --parameters \
     ParameterKey=OutputBucketName,ParameterValue=your-output-bucket \
     ParameterKey=GitHubSourceRepo,ParameterValue=https://github.com/yourusername/blender-wheel.git \
@@ -91,16 +91,50 @@ print("Render complete")
 
 ## Project Structure
 
-- `codebuild.yml` - CloudFormation template for setting up the CodeBuild project
-- `buildspec/blender-whl.yml` - Build specification for CodeBuild to compile Blender
+- `cf/codebuild.yml` - CloudFormation template for setting up the CodeBuild project
+- `buildspec.yml/blender-whl.yml` - Build specification for CodeBuild to compile Blender
+- `blender-demo/` - Demo applications showcasing Blender Python API usage
+- `tests/` - Test suite for validating project functionality
+- `pyproject.toml` - Project metadata and build configuration
 - `README.md` - This documentation file
+
+## Development
+
+### Running Tests
+
+Install development dependencies:
+
+```bash
+pip install -e ".[dev]"
+```
+
+Run the test suite:
+
+```bash
+pytest
+```
+
+Run with coverage:
+
+```bash
+pytest --cov=blender-demo --cov-report=html
+```
+
+### Code Quality
+
+Format code with ruff:
+
+```bash
+ruff check .
+ruff format .
+```
 
 ## Customization
 
 The build can be modified by editing the following files:
 
-- `buildspec/blender-whl.yml`: Modify build parameters, Python version, or dependencies
-- `codebuild.yml`: Adjust compute resources, environment variables, or timeout settings
+- `buildspec.yml/blender-whl.yml`: Modify build parameters, Python version, or dependencies
+- `cf/codebuild.yml`: Adjust compute resources, environment variables, or timeout settings
 
 ## Troubleshooting
 

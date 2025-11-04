@@ -1,10 +1,10 @@
 # For a real project, you would specify the exact version of the wheel file
 # blender_bpy_module-4.4-py3-none-linux_x86_64.whl
-# 
+#
 # Since we're using a local wheel file in this demo, we're listing it as a comment.
 # Install using:
 # pip install /path/to/blender_bpy_module-4.4.whl
 
-# Common dependencies for working with Blender
-numpy>=1.24.0
-pillow>=10.0.0
+# Common dependencies for working with Blender (pinned versions for reproducibility)
+numpy==1.26.4
+pillow==10.3.0
