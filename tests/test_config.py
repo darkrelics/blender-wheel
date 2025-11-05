@@ -1,6 +1,5 @@
 """Tests for configuration and build files."""
 import yaml
-import json
 from pathlib import Path
 
 
