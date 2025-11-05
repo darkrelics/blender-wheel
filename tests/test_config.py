@@ -4,6 +4,22 @@ import json
 from pathlib import Path
 
 
+# CloudFormation-specific YAML tag handlers
+def cloudformation_constructor(loader, tag_suffix, node):
+    """Generic constructor for CloudFormation intrinsic functions."""
+    if isinstance(node, yaml.ScalarNode):
+        return loader.construct_scalar(node)
+    elif isinstance(node, yaml.SequenceNode):
+        return loader.construct_sequence(node)
+    elif isinstance(node, yaml.MappingNode):
+        return loader.construct_mapping(node)
+    return None
+
+
+# Register CloudFormation tags
+yaml.SafeLoader.add_multi_constructor('!', cloudformation_constructor)
+
+
 def test_cloudformation_template_valid():
     """Test that CloudFormation template is valid YAML."""
     cf_path = Path(__file__).parent.parent / "cf" / "codebuild.yml"

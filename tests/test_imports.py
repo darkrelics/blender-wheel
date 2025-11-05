@@ -53,8 +53,8 @@ def test_import_materials_demo():
         assert hasattr(materials_demo, 'create_metal_material')
         assert hasattr(materials_demo, 'create_glass_material')
     except ImportError as e:
-        if 'bpy' in str(e):
-            pytest.skip("Blender (bpy) not installed - skipping import test")
+        if 'bpy' in str(e) or 'numpy' in str(e):
+            pytest.skip(f"Required dependency not installed - skipping import test: {e}")
         else:
             raise
 
