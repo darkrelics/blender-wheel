@@ -6,6 +6,14 @@ This repository contains templates and configuration for building Blender 4.4 as
 
 The Blender wheel package provides the Blender Python API (bpy) as an importable Python module, allowing programmatic creation, manipulation, and rendering of 3D content using Blender's engine within Python applications.
 
+## 🚀 Quick Start
+
+**New to this project?** See [GETTING_STARTED.md](GETTING_STARTED.md) for a complete walkthrough:
+- Building the Blender wheel
+- Installing and setting up
+- Generating your first 3D assets
+- Integrating assets into your projects
+
 ## Features
 
 - Build process for Blender 4.4 Python module using AWS CodeBuild
