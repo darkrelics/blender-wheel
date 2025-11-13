@@ -1,6 +1,6 @@
 # Blender Wheel
 
-This repository contains templates and configuration for building Blender 4.4 as a Python wheel package using AWS CodeBuild. This enables integration of Blender's 3D capabilities into Python projects.
+Build Blender 4.4 as a Python wheel package. Choose between automated AWS builds or local compilation. Integrate Blender's 3D capabilities into your Python projects.
 
 ## Overview
 
@@ -8,25 +8,53 @@ The Blender wheel package provides the Blender Python API (bpy) as an importable
 
 ## 🚀 Quick Start
 
-**New to this project?** See [GETTING_STARTED.md](GETTING_STARTED.md) for a complete walkthrough:
-- Building the Blender wheel
-- Installing and setting up
-- Generating your first 3D assets
-- Integrating assets into your projects
+### Option 1: Local Build (No AWS Required)
+
+```bash
+git clone https://github.com/darkrelics/blender-wheel.git
+cd blender-wheel
+./build_blender_wheel.sh
+pip install output/blender_bpy_module-4.4.whl
+```
+
+See [LOCAL_BUILD.md](LOCAL_BUILD.md) for details.
+
+### Option 2: AWS Build (Automated, Consistent)
+
+See [GETTING_STARTED.md](GETTING_STARTED.md) for AWS deployment.
+
+---
+
+**Complete Tutorial**: [GETTING_STARTED.md](GETTING_STARTED.md)
+- Building the wheel (AWS or local)
+- Installing and setup
+- Generating 3D assets
+- Integration examples
 
 ## Features
 
-- Build process for Blender 4.4 Python module using AWS CodeBuild
-- CloudFormation template for infrastructure setup
-- Build configuration for Blender 4.4
-- Produces a pip-installable wheel file
-- Support for Python 3.12
+- **Two build methods**: Local script or AWS CodeBuild
+- Blender 4.4 Python module (bpy)
+- Python 3.12 support
+- Pip-installable wheel package
+- Demo applications included
+- Complete test suite
 
-## Prerequisites
+## Build Methods
 
-- AWS Account with permissions to create CloudFormation stacks, IAM roles, and CodeBuild projects
-- S3 bucket for storing the built wheel file
-- Basic knowledge of AWS services
+### Local Build
+- **Script**: `build_blender_wheel.sh`
+- **Requirements**: Linux, Python 3.12, 20GB disk
+- **Time**: 45-60 minutes
+- **Cost**: Free
+- **Docs**: [LOCAL_BUILD.md](LOCAL_BUILD.md)
+
+### AWS Build
+- **Method**: CloudFormation + CodeBuild
+- **Requirements**: AWS account, S3 bucket
+- **Time**: 45-60 minutes
+- **Cost**: ~$0.50-$2 per build
+- **Docs**: [GETTING_STARTED.md](GETTING_STARTED.md)
 
 ## Deployment
 
