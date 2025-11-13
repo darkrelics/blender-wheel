@@ -220,27 +220,88 @@ def apply_modifiers(obj, modifiers_dict):
 
 
 def save_file(filepath):
-    """Save the current Blender file."""
+    """Save the current Blender file.
+
+    Args:
+        filepath: Path where to save the .blend file
+
+    Returns:
+        True if successful, False otherwise
+
+    Raises:
+        ValueError: If filepath is invalid
+        OSError: If directory cannot be created or file cannot be saved
+    """
+    if not filepath:
+        raise ValueError("filepath cannot be empty")
+
     # Ensure directory exists
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    directory = os.path.dirname(filepath)
+    if directory:
+        try:
+            os.makedirs(directory, exist_ok=True)
+        except OSError as e:
+            raise OSError(f"Failed to create directory {directory}: {e}")
 
     # Save file
-    bpy.ops.wm.save_as_mainfile(filepath=filepath)
+    try:
+        bpy.ops.wm.save_as_mainfile(filepath=filepath)
+    except Exception as e:
+        raise OSError(f"Failed to save file {filepath}: {e}")
+
+    # Verify file was created
+    if not os.path.exists(filepath):
+        raise OSError(f"File was not created at {filepath}")
 
     return True
 
 
 def render_to_file(output_path, file_format="PNG"):
-    """Render the current scene to a file."""
+    """Render the current scene to a file.
+
+    Args:
+        output_path: Path where to save the rendered image
+        file_format: Image format (PNG, JPEG, etc.)
+
+    Returns:
+        True if successful
+
+    Raises:
+        ValueError: If output_path is invalid or file_format unsupported
+        OSError: If directory cannot be created
+        RuntimeError: If rendering fails
+    """
+    if not output_path:
+        raise ValueError("output_path cannot be empty")
+
+    valid_formats = ['PNG', 'JPEG', 'BMP', 'TIFF', 'OPEN_EXR', 'HDR']
+    if file_format not in valid_formats:
+        raise ValueError(f"Invalid file_format '{file_format}'. Must be one of: {valid_formats}")
+
     # Ensure directory exists
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    directory = os.path.dirname(output_path)
+    if directory:
+        try:
+            os.makedirs(directory, exist_ok=True)
+        except OSError as e:
+            raise OSError(f"Failed to create directory {directory}: {e}")
 
     # Set render settings
-    bpy.context.scene.render.filepath = output_path
-    bpy.context.scene.render.image_settings.file_format = file_format
+    try:
+        bpy.context.scene.render.filepath = output_path
+        bpy.context.scene.render.image_settings.file_format = file_format
+    except Exception as e:
+        raise ValueError(f"Failed to set render settings: {e}")
 
     # Render
-    bpy.ops.render.render(write_still=True)
+    try:
+        bpy.ops.render.render(write_still=True)
+    except Exception as e:
+        raise RuntimeError(f"Rendering failed: {e}")
+
+    # Verify output was created
+    if not os.path.exists(output_path):
+        raise RuntimeError(f"Render output was not created at {output_path}")
 
     return True
 

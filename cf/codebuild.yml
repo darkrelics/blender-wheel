@@ -60,7 +60,7 @@ Resources:
       Source:
         Type: GITHUB
         Location: !Ref GitHubSourceRepo
-        BuildSpec: buildspec/blender-whl.yml
+        BuildSpec: buildspec.yml/blender-whl.yml
       Environment:
         ComputeType: BUILD_GENERAL1_LARGE
         Image: aws/codebuild/standard:7.0
@@ -77,3 +77,22 @@ Resources:
       Cache:
         Type: NO_CACHE
       TimeoutInMinutes: 60
+
+Outputs:
+  CodeBuildProjectName:
+    Description: Name of the CodeBuild project
+    Value: !Ref BlenderWhlBuildProject
+    Export:
+      Name: !Sub "${AWS::StackName}-ProjectName"
+
+  CodeBuildProjectArn:
+    Description: ARN of the CodeBuild project
+    Value: !GetAtt BlenderWhlBuildProject.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-ProjectArn"
+
+  OutputBucket:
+    Description: S3 bucket where wheels are stored
+    Value: !Ref OutputBucketName
+    Export:
+      Name: !Sub "${AWS::StackName}-OutputBucket"

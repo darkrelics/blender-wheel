@@ -28,7 +28,11 @@ cd blender-wheel
 ### 2. Run the Build Script
 
 ```bash
+# Interactive mode (prompts for confirmation)
 ./build_blender_wheel.sh
+
+# Non-interactive mode (for CI/CD)
+./build_blender_wheel.sh --yes
 ```
 
 The script will:
@@ -91,12 +95,12 @@ If you prefer to run steps manually, see the script contents. Each phase is clea
 For a fully isolated build environment:
 
 ```bash
-# Build using Docker
+# Build using Docker (non-interactive mode)
 docker run -it --rm \
   -v $(pwd):/workspace \
   -w /workspace \
   ubuntu:22.04 \
-  bash -c "apt-get update && apt-get install -y sudo && ./build_blender_wheel.sh"
+  bash -c "apt-get update && apt-get install -y sudo && ./build_blender_wheel.sh --yes"
 ```
 
 Or create a Dockerfile:
@@ -152,7 +156,7 @@ jobs:
     - name: Build Blender Wheel
       run: |
         chmod +x build_blender_wheel.sh
-        ./build_blender_wheel.sh
+        ./build_blender_wheel.sh --yes
 
     - name: Upload Wheel
       uses: actions/upload-artifact@v4
@@ -181,7 +185,7 @@ build-wheel:
 
   script:
     - chmod +x build_blender_wheel.sh
-    - ./build_blender_wheel.sh
+    - ./build_blender_wheel.sh --yes
 
   artifacts:
     paths:
@@ -204,7 +208,7 @@ pipeline {
             steps {
                 sh '''
                     chmod +x build_blender_wheel.sh
-                    ./build_blender_wheel.sh
+                    ./build_blender_wheel.sh --yes
                 '''
             }
         }

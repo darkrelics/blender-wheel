@@ -15,7 +15,10 @@ set -e  # Exit on error
 #   - ~45-60 minutes build time
 #
 # Usage:
-#   ./build_blender_wheel.sh
+#   ./build_blender_wheel.sh [-y|--yes]
+#
+# Options:
+#   -y, --yes        Skip confirmation prompts (for CI/CD)
 #
 # Environment Variables (optional):
 #   BLENDER_REPO_URL - Git URL for Blender source (default: official repo)
@@ -28,12 +31,30 @@ echo "Blender Python Module Build Script"
 echo "========================================"
 echo ""
 
+# Parse arguments
+AUTO_YES=false
+for arg in "$@"; do
+    case $arg in
+        -y|--yes)
+            AUTO_YES=true
+            shift
+            ;;
+    esac
+done
+
 # Configuration
 BLENDER_REPO_URL="${BLENDER_REPO_URL:-https://projects.blender.org/blender/blender.git}"
 PYTHON_VERSION="${PYTHON_VERSION:-3.12}"
 WITH_LIBS_PRECOMPILED="${WITH_LIBS_PRECOMPILED:-OFF}"
 OUTPUT_DIR="${OUTPUT_DIR:-$(pwd)/output}"
 BUILD_DIR="$(pwd)/blender-source"
+
+# Safety checks
+if [ -z "$BUILD_DIR" ] || [ "$BUILD_DIR" = "/" ] || [ "$BUILD_DIR" = "/home" ]; then
+    echo "ERROR: Invalid BUILD_DIR detected: '$BUILD_DIR'"
+    echo "This would be dangerous. Aborting."
+    exit 1
+fi
 
 echo "Configuration:"
 echo "  Blender Repository: $BLENDER_REPO_URL"
@@ -47,11 +68,22 @@ echo ""
 # ============================================================================
 echo "Phase 1: Installing build dependencies..."
 echo "This requires sudo privileges and will install packages."
-read -p "Continue? (y/n) " -n 1 -r
-echo
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    echo "Aborted."
-    exit 1
+echo ""
+echo "⚠️  WARNING: This script will:"
+echo "  - Install system packages as root"
+echo "  - Clone and execute code from: $BLENDER_REPO_URL"
+echo "  - Run Blender's install_linux_packages.py as root"
+echo ""
+echo "Only continue if you trust the source repository!"
+echo ""
+
+if [ "$AUTO_YES" = false ]; then
+    read -p "Continue? (y/n) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Aborted."
+        exit 1
+    fi
 fi
 
 echo "Updating package list..."
@@ -60,8 +92,7 @@ sudo apt-get update -y -q
 echo "Installing Python ${PYTHON_VERSION}..."
 sudo apt-get install -y -q \
     python${PYTHON_VERSION} \
-    python${PYTHON_VERSION}-dev \
-    python${PYTHON_VERSION}-distutils
+    python${PYTHON_VERSION}-dev
 
 echo "Installing build tools..."
 sudo apt-get install -y -q \
@@ -85,6 +116,11 @@ git lfs install --skip-smudge
 # Clone Blender (shallow clone for faster download)
 if [ -d "$BUILD_DIR" ]; then
     echo "Build directory exists. Removing..."
+    # Double-check safety before rm -rf
+    if [ -z "$BUILD_DIR" ] || [ "$BUILD_DIR" = "/" ]; then
+        echo "ERROR: Refusing to remove invalid path: '$BUILD_DIR'"
+        exit 1
+    fi
     rm -rf "$BUILD_DIR"
 fi
 
