@@ -1,6 +1,7 @@
 """Test that all demo modules can be imported successfully."""
 import sys
 from pathlib import Path
+
 import pytest
 
 # Add blender-demo to path

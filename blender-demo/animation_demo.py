@@ -5,8 +5,7 @@ Blender Animation Demo Script
 Creates a simple animated scene with keyframed objects.
 """
 import os
-
-from math import radians, sin, cos, pi
+from math import cos, pi, radians, sin
 
 import bpy
 

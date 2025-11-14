@@ -1,7 +1,8 @@
 """Pytest configuration and fixtures for blender-wheel tests."""
-import pytest
 import sys
 from pathlib import Path
+
+import pytest
 
 # Add blender-demo to Python path for imports
 demo_path = Path(__file__).parent.parent / "blender-demo"

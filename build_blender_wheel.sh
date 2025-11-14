@@ -203,6 +203,42 @@ echo "MD5:    $(cat blender_bpy_module-4.4.whl.md5)"
 echo ""
 
 # ============================================================================
+# Phase 6: Verify Build (Optional but Recommended)
+# ============================================================================
+echo "Phase 6: Verifying wheel installation..."
+echo ""
+
+# Create temporary virtual environment for testing
+TEMP_VENV="$OUTPUT_DIR/test_venv"
+if [ -d "$TEMP_VENV" ]; then
+    rm -rf "$TEMP_VENV"
+fi
+
+echo "Creating test virtual environment..."
+python${PYTHON_VERSION} -m venv "$TEMP_VENV"
+
+echo "Activating test environment..."
+source "$TEMP_VENV/bin/activate"
+
+echo "Installing wheel..."
+pip install --quiet blender_bpy_module-4.4.whl
+
+echo "Testing bpy import..."
+if python -c "import bpy; print(f'✓ Successfully imported bpy {bpy.app.version_string}')" 2>/dev/null; then
+    echo "✓ Wheel verification PASSED"
+    VERIFICATION_STATUS="PASSED"
+else
+    echo "✗ Wheel verification FAILED - cannot import bpy"
+    VERIFICATION_STATUS="FAILED"
+fi
+
+# Cleanup
+deactivate
+rm -rf "$TEMP_VENV"
+
+echo ""
+
+# ============================================================================
 # Complete
 # ============================================================================
 echo "========================================"
@@ -216,9 +252,18 @@ echo "  MD5:    $OUTPUT_DIR/blender_bpy_module-4.4.whl.md5"
 echo ""
 echo "File size: $(du -h $OUTPUT_WHEEL | cut -f1)"
 echo ""
+echo "Verification: $VERIFICATION_STATUS"
+echo ""
 echo "To install:"
 echo "  pip install $OUTPUT_WHEEL"
 echo ""
 echo "To verify integrity:"
 echo "  sha256sum -c blender_bpy_module-4.4.whl.sha256"
 echo ""
+
+# Exit with error if verification failed
+if [ "$VERIFICATION_STATUS" = "FAILED" ]; then
+    echo "⚠️  WARNING: Build completed but verification failed!"
+    echo "    The wheel may not be functional."
+    exit 1
+fi

@@ -1,6 +1,7 @@
 """Tests for configuration and build files."""
-import yaml
 from pathlib import Path
+
+import yaml
 
 
 # CloudFormation-specific YAML tag handlers

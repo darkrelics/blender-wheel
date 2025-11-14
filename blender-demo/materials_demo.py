@@ -7,9 +7,8 @@ Demonstrates creating various materials and textures in Blender.
 import os
 from math import radians
 
-import numpy as np
-
 import bpy
+import numpy as np
 
 
 def reset_scene():

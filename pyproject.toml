@@ -63,9 +63,21 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = [
-    "--verbose",
-    "--cov=blender-demo",
-    "--cov-report=term-missing",
-    "--cov-report=html",
+
+[tool.coverage.run]
+omit = [
+    "*/test_*.py",
+    "*/conftest.py",
+]
+
+[tool.coverage.report]
+# Exclude bpy-dependent code that can't be tested without Blender
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "import bpy",
+    "bpy\\.",
 ]

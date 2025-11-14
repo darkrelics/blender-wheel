@@ -19,12 +19,11 @@ import bpy
 # Add utils to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from scripts.utils import (
-    reset_to_factory,
-    setup_render_settings,
-    setup_camera,
-    setup_lighting,
     create_material,
     render_to_file,
+    reset_to_factory,
+    setup_camera,
+    setup_render_settings,
 )
 
 

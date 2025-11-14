@@ -4,26 +4,34 @@ Blender Batch Rendering Script
 ----------------------------
 Renders multiple scenes with different settings.
 """
-import os
-import sys
-import json
 import argparse
 import datetime
+import json
+import logging
+import os
+import sys
 
 import bpy
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 
 # Add the parent directory to the path to import utils
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from scripts.utils import (
-    reset_to_factory,
-    setup_render_settings,
-    setup_camera,
-    setup_lighting,
     create_ground_plane,
     create_material,
     create_object,
     render_to_file,
+    reset_to_factory,
+    setup_camera,
+    setup_lighting,
+    setup_render_settings,
 )
 
 
@@ -122,7 +130,7 @@ def render_scenes_from_config(config_file, output_dir):
     os.makedirs(output_dir, exist_ok=True)
 
     # Load configuration
-    with open(config_file, "r") as f:
+    with open(config_file) as f:
         config = json.load(f)
 
     rendered_files = []
@@ -130,7 +138,7 @@ def render_scenes_from_config(config_file, output_dir):
     # Process each scene
     for i, scene_data in enumerate(config.get("scenes", [])):
         scene_name = scene_data.get("name", f"scene_{i+1}")
-        print(f"Rendering scene: {scene_name}")
+        logger.info(f"Rendering scene: {scene_name}")
 
         # Create the scene
         create_scene(scene_data)
@@ -142,7 +150,7 @@ def render_scenes_from_config(config_file, output_dir):
         render_to_file(output_path, file_format="PNG")
 
         rendered_files.append(output_path)
-        print(f"Rendered {scene_name} to {output_path}")
+        logger.info(f"Rendered {scene_name} to {output_path}")
 
     return rendered_files
 
@@ -251,7 +259,7 @@ def create_sample_config(config_path):
     with open(config_path, "w") as f:
         json.dump(sample_config, f, indent=2)
 
-    print(f"Created sample configuration file at: {config_path}")
+    logger.info(f"Created sample configuration file at: {config_path}")
     return config_path
 
 
@@ -279,30 +287,30 @@ def main():
             config_path = args.config
 
         create_sample_config(config_path)
-        print("Sample configuration created. Run the script with this config to render:")
-        print(f"python {sys.argv[0]} --config {config_path} --output {args.output}")
+        logger.info("Sample configuration created. Run the script with this config to render:")
+        logger.info(f"python {sys.argv[0]} --config {config_path} --output {args.output}")
         return
 
     # If no config file provided
     if not args.config:
         parser.print_help()
-        print("\nError: No configuration file provided.")
-        print("To create a sample configuration, run:")
-        print(f"python {sys.argv[0]} --create-sample-config")
+        logger.error("\nNo configuration file provided.")
+        logger.info("To create a sample configuration, run:")
+        logger.info(f"python {sys.argv[0]} --create-sample-config")
         return
 
     # Render scenes
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     output_dir = os.path.join(args.output, timestamp)
 
-    print(f"Starting batch render of scenes from: {args.config}")
-    print(f"Output will be saved to: {output_dir}")
+    logger.info(f"Starting batch render of scenes from: {args.config}")
+    logger.info(f"Output will be saved to: {output_dir}")
 
     rendered_files = render_scenes_from_config(args.config, output_dir)
 
-    print(f"Batch rendering complete. Rendered {len(rendered_files)} scenes:")
+    logger.info(f"Batch rendering complete. Rendered {len(rendered_files)} scenes:")
     for file_path in rendered_files:
-        print(f"  - {file_path}")
+        logger.info(f"  - {file_path}")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 """Unit tests for utility functions that don't require Blender."""
 import sys
 from pathlib import Path
+
 import pytest
 
 # Add blender-demo to path
