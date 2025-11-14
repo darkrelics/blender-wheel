@@ -17,6 +17,7 @@ from .constants import (
     DEFAULT_CAMERA_CLIP_START,
     DEFAULT_CAMERA_LENS,
     DEFAULT_GROUND_PLANE_SIZE,
+    DEFAULT_GROUND_ROUGHNESS,
     DEFAULT_IOR,
     DEFAULT_METALLIC,
     DEFAULT_RENDER_ENGINE,
@@ -168,7 +169,7 @@ def create_ground_plane(
     size: float = DEFAULT_GROUND_PLANE_SIZE,
     location: tuple[float, float, float] = (0, 0, 0),
     color: tuple[float, float, float, float] = COLOR_DARK_GRAY,
-    roughness: float = DEFAULT_ROUGHNESS
+    roughness: float = DEFAULT_GROUND_ROUGHNESS
 ) -> bpy.types.Object:
     """Create a ground plane with material."""
     bpy.ops.mesh.primitive_plane_add(size=size, location=location)

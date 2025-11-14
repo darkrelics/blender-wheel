@@ -23,6 +23,12 @@ logger = logging.getLogger(__name__)
 
 # Add the parent directory to the path to import utils
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from scripts.constants import (
+    DEFAULT_RESOLUTION_X,
+    DEFAULT_RESOLUTION_Y,
+    DEFAULT_SAMPLES,
+    DEFAULT_SAMPLES_PREVIEW,
+)
 from scripts.utils import (
     create_ground_plane,
     create_material,
@@ -51,10 +57,10 @@ def create_scene(scene_data):
     # Setup render settings
     setup_render_settings(
         engine=scene_data.get("render_engine", "CYCLES"),
-        resolution_x=scene_data.get("resolution_x", 1920),
-        resolution_y=scene_data.get("resolution_y", 1080),
+        resolution_x=scene_data.get("resolution_x", DEFAULT_RESOLUTION_X),
+        resolution_y=scene_data.get("resolution_y", DEFAULT_RESOLUTION_Y),
         resolution_percentage=scene_data.get("resolution_percentage", 50),
-        samples=scene_data.get("samples", 64),
+        samples=scene_data.get("samples", DEFAULT_SAMPLES_PREVIEW),
         use_transparent_bg=scene_data.get("transparent_background", False),
     )
 
@@ -170,7 +176,7 @@ def create_sample_config(config_path):
                 "resolution_x": 1280,
                 "resolution_y": 720,
                 "resolution_percentage": 50,
-                "samples": 64,
+                "samples": DEFAULT_SAMPLES_PREVIEW,
                 "transparent_background": False,
                 "camera": {"location": [0, -10, 5], "rotation": [1.0, 0, 0], "lens": 35},
                 "lighting": {"setup": "three_point"},
@@ -226,9 +232,9 @@ def create_sample_config(config_path):
             },
             {
                 "name": "glass_demo",
-                "resolution_x": 1920,
-                "resolution_y": 1080,
-                "samples": 128,
+                "resolution_x": DEFAULT_RESOLUTION_X,
+                "resolution_y": DEFAULT_RESOLUTION_Y,
+                "samples": DEFAULT_SAMPLES,
                 "camera": {"location": [0, -6, 3], "rotation": [0.9, 0, 0]},
                 "lighting": {"setup": "studio"},
                 "create_ground": True,

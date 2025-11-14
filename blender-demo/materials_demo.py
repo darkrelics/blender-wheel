@@ -5,26 +5,20 @@ Blender Materials Demo Script
 Demonstrates creating various materials and textures in Blender.
 """
 import os
+import sys
 from math import radians
 
 import bpy
 import numpy as np
 
-
-def reset_scene():
-    """Clear the current scene."""
-    bpy.ops.wm.read_factory_settings(use_empty=True)
-
-    # Remove default objects
-    if "Cube" in bpy.data.objects:
-        bpy.data.objects.remove(bpy.data.objects["Cube"])
-
-    # Set render settings
-    bpy.context.scene.render.engine = "CYCLES"
-    bpy.context.scene.cycles.samples = 128  # Reduce for faster preview
-    bpy.context.scene.render.resolution_x = 1920
-    bpy.context.scene.render.resolution_y = 1080
-    bpy.context.scene.render.resolution_percentage = 50
+# Add scripts directory to path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from scripts.constants import (
+    DEFAULT_RESOLUTION_X,
+    DEFAULT_RESOLUTION_Y,
+    DEFAULT_SAMPLES,
+)
+from scripts.utils import reset_to_factory, setup_render_settings
 
 
 def setup_environment():
@@ -299,7 +293,15 @@ def main():
     output_path = os.path.join(os.path.dirname(__file__), "output", "materials_demo.png")
 
     # Reset the scene
-    reset_scene()
+    reset_to_factory()
+
+    # Setup render settings
+    setup_render_settings(
+        resolution_x=DEFAULT_RESOLUTION_X,
+        resolution_y=DEFAULT_RESOLUTION_Y,
+        resolution_percentage=50,  # Faster preview
+        samples=DEFAULT_SAMPLES
+    )
 
     # Setup environment
     setup_environment()

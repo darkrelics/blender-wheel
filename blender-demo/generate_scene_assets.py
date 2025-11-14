@@ -18,6 +18,11 @@ import bpy
 
 # Add utils to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from scripts.constants import (
+    DEFAULT_RESOLUTION_X,
+    DEFAULT_RESOLUTION_Y,
+    HIGH_QUALITY_SAMPLES,
+)
 from scripts.utils import (
     create_material,
     render_to_file,
@@ -250,10 +255,10 @@ def create_scene():
     # Render settings
     setup_render_settings(
         engine="CYCLES",
-        resolution_x=1920,
-        resolution_y=1080,
+        resolution_x=DEFAULT_RESOLUTION_X,
+        resolution_y=DEFAULT_RESOLUTION_Y,
         resolution_percentage=100,
-        samples=256
+        samples=HIGH_QUALITY_SAMPLES
     )
 
     # Ground
