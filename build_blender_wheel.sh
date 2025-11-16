@@ -21,9 +21,10 @@ set -e  # Exit on error
 #   -y, --yes        Skip confirmation prompts (for CI/CD)
 #
 # Environment Variables (optional):
-#   BLENDER_REPO_URL - Git URL for Blender source (default: official repo)
-#   PYTHON_VERSION   - Python version to use (default: 3.12)
-#   OUTPUT_DIR       - Where to place the built wheel (default: ./output)
+#   BLENDER_REPO_URL    - Git URL for Blender source (default: official repo)
+#   BLENDER_COMMIT_HASH - Trusted commit hash for verification (default: none, shows warning)
+#   PYTHON_VERSION      - Python version to use (default: 3.12)
+#   OUTPUT_DIR          - Where to place the built wheel (default: ./output)
 #
 
 echo "========================================"
@@ -44,6 +45,7 @@ done
 
 # Configuration
 BLENDER_REPO_URL="${BLENDER_REPO_URL:-https://projects.blender.org/blender/blender.git}"
+BLENDER_COMMIT_HASH="${BLENDER_COMMIT_HASH:-}"  # Optional: specify trusted commit hash for verification
 PYTHON_VERSION="${PYTHON_VERSION:-3.12}"
 WITH_LIBS_PRECOMPILED="${WITH_LIBS_PRECOMPILED:-OFF}"
 OUTPUT_DIR="${OUTPUT_DIR:-$(pwd)/output}"
@@ -61,6 +63,23 @@ echo "  Blender Repository: $BLENDER_REPO_URL"
 echo "  Python Version:     $PYTHON_VERSION"
 echo "  Output Directory:   $OUTPUT_DIR"
 echo "  Build Directory:    $BUILD_DIR"
+echo ""
+
+# Check available disk space (require at least 25GB free)
+echo "Checking disk space..."
+REQUIRED_SPACE_GB=25
+AVAILABLE_SPACE_KB=$(df -k "$(pwd)" | tail -1 | awk '{print $4}')
+AVAILABLE_SPACE_GB=$((AVAILABLE_SPACE_KB / 1024 / 1024))
+
+if [ "$AVAILABLE_SPACE_GB" -lt "$REQUIRED_SPACE_GB" ]; then
+    echo "ERROR: Insufficient disk space!"
+    echo "  Required: ${REQUIRED_SPACE_GB}GB"
+    echo "  Available: ${AVAILABLE_SPACE_GB}GB"
+    echo "  Please free up disk space before continuing."
+    exit 1
+fi
+
+echo "✓ Disk space check passed (${AVAILABLE_SPACE_GB}GB available)"
 echo ""
 
 # ============================================================================
@@ -113,14 +132,16 @@ echo "Phase 2: Cloning Blender source..."
 # Initialize git-lfs
 git lfs install --skip-smudge
 
+# Safety check before any directory operations (validate BUILD_DIR hasn't been modified)
+if [ -z "$BUILD_DIR" ] || [ "$BUILD_DIR" = "/" ] || [ "$BUILD_DIR" = "/home" ] || [ "$BUILD_DIR" = "$HOME" ]; then
+    echo "ERROR: Invalid BUILD_DIR detected before directory removal: '$BUILD_DIR'"
+    echo "This would be dangerous. Aborting."
+    exit 1
+fi
+
 # Clone Blender (shallow clone for faster download)
 if [ -d "$BUILD_DIR" ]; then
-    echo "Build directory exists. Removing..."
-    # Double-check safety before rm -rf
-    if [ -z "$BUILD_DIR" ] || [ "$BUILD_DIR" = "/" ]; then
-        echo "ERROR: Refusing to remove invalid path: '$BUILD_DIR'"
-        exit 1
-    fi
+    echo "Build directory exists. Removing: $BUILD_DIR"
     rm -rf "$BUILD_DIR"
 fi
 
@@ -128,6 +149,28 @@ echo "Cloning from: $BLENDER_REPO_URL"
 git clone --depth 1 "$BLENDER_REPO_URL" "$BUILD_DIR"
 
 cd "$BUILD_DIR"
+
+# Verify commit hash if specified (security measure)
+if [ -n "$BLENDER_COMMIT_HASH" ]; then
+    echo "Verifying commit hash for security..."
+    ACTUAL_COMMIT=$(git rev-parse HEAD)
+    if [ "$ACTUAL_COMMIT" != "$BLENDER_COMMIT_HASH" ]; then
+        echo "ERROR: Commit hash mismatch!"
+        echo "  Expected: $BLENDER_COMMIT_HASH"
+        echo "  Actual:   $ACTUAL_COMMIT"
+        echo "  This could indicate a compromised repository or outdated hash."
+        echo "  Aborting for security."
+        exit 1
+    fi
+    echo "✓ Commit hash verified: $ACTUAL_COMMIT"
+else
+    ACTUAL_COMMIT=$(git rev-parse HEAD)
+    echo "⚠️  WARNING: No commit hash verification enabled."
+    echo "   Current commit: $ACTUAL_COMMIT"
+    echo "   For security, consider setting BLENDER_COMMIT_HASH environment variable."
+    echo "   Example: BLENDER_COMMIT_HASH=$ACTUAL_COMMIT ./build_blender_wheel.sh"
+fi
+echo ""
 
 echo "Installing Linux build dependencies..."
 sudo ./build_files/build_environment/install_linux_packages.py --all
@@ -178,8 +221,20 @@ if [ -z "$WHEEL_FILE" ]; then
     exit 1
 fi
 
-# Rename to standard name
-OUTPUT_WHEEL="$OUTPUT_DIR/blender_bpy_module-4.4.whl"
+# Extract version from the wheel filename (e.g., bpy-4.4.0-cp312-cp312-linux_x86_64.whl)
+WHEEL_BASENAME=$(basename "$WHEEL_FILE")
+# Extract version: everything between "bpy-" and the first "-cp"
+BLENDER_VERSION=$(echo "$WHEEL_BASENAME" | sed -n 's/bpy-\([^-]*\)-.*/\1/p')
+
+if [ -z "$BLENDER_VERSION" ]; then
+    echo "WARNING: Could not extract version from wheel filename, using 'unknown'"
+    BLENDER_VERSION="unknown"
+fi
+
+echo "Detected Blender version: $BLENDER_VERSION"
+
+# Rename to standard name with detected version
+OUTPUT_WHEEL="$OUTPUT_DIR/blender_bpy_module-${BLENDER_VERSION}.whl"
 mv "$WHEEL_FILE" "$OUTPUT_WHEEL"
 
 echo "Wheel generated: $OUTPUT_WHEEL"
@@ -192,13 +247,15 @@ echo "Phase 5: Generating checksums..."
 
 cd "$OUTPUT_DIR"
 
+WHEEL_FILENAME=$(basename "$OUTPUT_WHEEL")
+
 # SHA256
-sha256sum blender_bpy_module-4.4.whl > blender_bpy_module-4.4.whl.sha256
-echo "SHA256: $(cat blender_bpy_module-4.4.whl.sha256)"
+sha256sum "$WHEEL_FILENAME" > "${WHEEL_FILENAME}.sha256"
+echo "SHA256: $(cat ${WHEEL_FILENAME}.sha256)"
 
 # MD5
-md5sum blender_bpy_module-4.4.whl > blender_bpy_module-4.4.whl.md5
-echo "MD5:    $(cat blender_bpy_module-4.4.whl.md5)"
+md5sum "$WHEEL_FILENAME" > "${WHEEL_FILENAME}.md5"
+echo "MD5:    $(cat ${WHEEL_FILENAME}.md5)"
 
 echo ""
 
@@ -221,7 +278,7 @@ echo "Activating test environment..."
 source "$TEMP_VENV/bin/activate"
 
 echo "Installing wheel..."
-pip install --quiet blender_bpy_module-4.4.whl
+pip install --quiet "$WHEEL_FILENAME"
 
 echo "Testing bpy import..."
 if python -c "import bpy; print(f'✓ Successfully imported bpy {bpy.app.version_string}')" 2>/dev/null; then
@@ -247,8 +304,8 @@ echo "========================================"
 echo ""
 echo "Output files:"
 echo "  Wheel:  $OUTPUT_WHEEL"
-echo "  SHA256: $OUTPUT_DIR/blender_bpy_module-4.4.whl.sha256"
-echo "  MD5:    $OUTPUT_DIR/blender_bpy_module-4.4.whl.md5"
+echo "  SHA256: ${OUTPUT_WHEEL}.sha256"
+echo "  MD5:    ${OUTPUT_WHEEL}.md5"
 echo ""
 echo "File size: $(du -h $OUTPUT_WHEEL | cut -f1)"
 echo ""
@@ -258,7 +315,7 @@ echo "To install:"
 echo "  pip install $OUTPUT_WHEEL"
 echo ""
 echo "To verify integrity:"
-echo "  sha256sum -c blender_bpy_module-4.4.whl.sha256"
+echo "  sha256sum -c $WHEEL_FILENAME.sha256"
 echo ""
 
 # Exit with error if verification failed

@@ -9,15 +9,21 @@ This script creates:
 - Props (crate, barrel, lamp post)
 - Character placeholder (simple capsule)
 - Renders from multiple angles
+
+Usage:
+    Run from the blender-demo directory:
+        cd blender-demo
+        python generate_scene_assets.py
+
+    Or specify PYTHONPATH:
+        PYTHONPATH=blender-demo python blender-demo/generate_scene_assets.py
 """
 import os
-import sys
 from math import radians
 
 import bpy
 
-# Add utils to path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# Import from scripts module (works when running from blender-demo directory)
 from scripts.constants import (
     DEFAULT_RESOLUTION_X,
     DEFAULT_RESOLUTION_Y,

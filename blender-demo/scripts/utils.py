@@ -34,6 +34,44 @@ from .constants import (
 )
 
 
+def safe_ops_call(op_function, expected_type: str | None = None, error_msg: str | None = None, **kwargs):
+    """
+    Safely execute a bpy.ops operation with error checking.
+
+    Args:
+        op_function: The bpy.ops function to call
+        expected_type: Expected type of the created object ('MESH', 'LIGHT', 'CAMERA', etc.)
+        error_msg: Custom error message (default: auto-generated)
+        **kwargs: Arguments to pass to the operation
+
+    Returns:
+        The created object (from bpy.context.active_object)
+
+    Raises:
+        RuntimeError: If the operation fails or doesn't create expected object type
+
+    Example:
+        >>> light = safe_ops_call(bpy.ops.object.light_add, 'LIGHT', type='SUN', location=(0, 0, 5))
+    """
+    result = op_function(**kwargs)
+
+    if result != {'FINISHED'}:
+        msg = error_msg or f"Operation {op_function.__name__} failed with result: {result}"
+        raise RuntimeError(msg)
+
+    if expected_type is not None:
+        obj = bpy.context.active_object
+        if obj is None:
+            msg = error_msg or f"No active object after {op_function.__name__}"
+            raise RuntimeError(msg)
+        if obj.type != expected_type:
+            msg = error_msg or f"Expected {expected_type}, got {obj.type} from {op_function.__name__}"
+            raise RuntimeError(msg)
+        return obj
+
+    return bpy.context.active_object
+
+
 def reset_to_factory() -> bool:
     """Reset Blender to factory settings and remove default objects."""
     bpy.ops.wm.read_factory_settings(use_empty=True)

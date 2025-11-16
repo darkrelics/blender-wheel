@@ -3,16 +3,22 @@
 Blender Materials Demo Script
 ----------------------------
 Demonstrates creating various materials and textures in Blender.
+
+Usage:
+    Run from the blender-demo directory:
+        cd blender-demo
+        python materials_demo.py
+
+    Or specify PYTHONPATH:
+        PYTHONPATH=blender-demo python blender-demo/materials_demo.py
 """
 import os
-import sys
 from math import radians
 
 import bpy
 import numpy as np
 
-# Add scripts directory to path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# Import from scripts module (works when running from blender-demo directory)
 from scripts.constants import (
     DEFAULT_RESOLUTION_X,
     DEFAULT_RESOLUTION_Y,

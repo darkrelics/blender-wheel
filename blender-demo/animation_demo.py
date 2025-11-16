@@ -3,21 +3,27 @@
 Blender Animation Demo Script
 ----------------------------
 Creates a simple animated scene with keyframed objects.
+
+Usage:
+    Run from the blender-demo directory:
+        cd blender-demo
+        python animation_demo.py
+
+    Or specify PYTHONPATH:
+        PYTHONPATH=blender-demo python blender-demo/animation_demo.py
 """
 import os
-import sys
 from math import cos, pi, radians, sin
 
 import bpy
 
-# Add scripts directory to path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# Import from scripts module (works when running from blender-demo directory)
 from scripts.constants import (
     DEFAULT_FRAME_END,
     DEFAULT_FRAME_START,
     DEFAULT_SAMPLES_PREVIEW,
 )
-from scripts.utils import reset_to_factory, setup_render_settings
+from scripts.utils import create_material, reset_to_factory, setup_render_settings
 
 
 def setup_environment():
@@ -86,21 +92,6 @@ def setup_environment():
         principled_bsdf.inputs["Roughness"].default_value = 0.95
 
     plane.data.materials.append(ground_mat)
-
-
-def create_material(name, color, metallic=0.0, roughness=0.5):
-    """Create a material with the given properties."""
-    mat = bpy.data.materials.new(name=name)
-    mat.use_nodes = True
-    nodes = mat.node_tree.nodes
-
-    principled_bsdf = nodes.get("Principled BSDF")
-    if principled_bsdf:
-        principled_bsdf.inputs["Base Color"].default_value = color
-        principled_bsdf.inputs["Metallic"].default_value = metallic
-        principled_bsdf.inputs["Roughness"].default_value = roughness
-
-    return mat
 
 
 def create_bouncing_sphere():

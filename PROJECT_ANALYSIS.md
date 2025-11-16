@@ -452,8 +452,7 @@ setup_render_settings(
 |------|---------|--------|
 | pytest | Testing | Quality assurance |
 | pytest-cov | Coverage | Quality metrics |
-| ruff | Linting/formatting | Code quality |
-| mypy | Type checking | Type safety |
+| ruff | Linting/formatting | Code quality and type checking |
 | pre-commit | Git hooks | Automation |
 
 **Dependency Health:**

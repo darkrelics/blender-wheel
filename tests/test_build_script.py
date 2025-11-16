@@ -31,7 +31,8 @@ def test_build_script_help():
         timeout=5
     )
     # The script doesn't have --help but shouldn't crash
-    assert "Blender Python Module Build Script" in result.stdout or result.returncode == 1
+    assert "Blender Python Module Build Script" in result.stdout or result.returncode == 1, \
+        f"Expected help text or controlled exit, got returncode={result.returncode}, stdout={result.stdout[:200]}"
 
 
 def test_build_script_has_safety_checks():

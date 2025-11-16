@@ -16,11 +16,33 @@ Parameters:
     Description: S3 Bucket name for output artifact
     Type: String
 
+  ProjectName:
+    Description: Name of the project (used for tagging)
+    Type: String
+    Default: blender-wheel
+
+  Environment:
+    Description: Environment name (dev, staging, production)
+    Type: String
+    Default: production
+    AllowedValues:
+      - dev
+      - staging
+      - production
+
 Resources:
   CodeBuildAccessPolicy:
     Type: AWS::IAM::ManagedPolicy
+    DeletionPolicy: Retain
     Properties:
       Description: "Managed policy for CodeBuild to access logs and S3"
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -41,7 +63,15 @@ Resources:
 
   CodeBuildServiceRole:
     Type: AWS::IAM::Role
+    DeletionPolicy: Retain
     Properties:
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -55,8 +85,19 @@ Resources:
 
   BlenderWhlBuildProject:
     Type: AWS::CodeBuild::Project
+    DeletionPolicy: Retain
     Properties:
       Name: Blender-Whl-Build
+      Description: !Sub "Blender 4.4 Python wheel build project (${Environment})"
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+        - Key: Purpose
+          Value: Blender Python Module Build
       Source:
         Type: GITHUB
         Location: !Ref GitHubSourceRepo

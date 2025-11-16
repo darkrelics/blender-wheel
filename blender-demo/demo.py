@@ -3,14 +3,20 @@
 Basic Blender Demo Script
 -------------------------
 Creates a simple 3D scene with geometric primitives and renders it.
+
+Usage:
+    Run from the blender-demo directory:
+        cd blender-demo
+        python demo.py
+
+    Or specify PYTHONPATH:
+        PYTHONPATH=blender-demo python blender-demo/demo.py
 """
 import os
-import sys
 
 import bpy
 
-# Add scripts directory to path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# Import from scripts module (works when running from blender-demo directory)
 from scripts.constants import (
     COLOR_BLUE,
     COLOR_GREEN,
@@ -69,17 +75,29 @@ def main():
     setup_camera(location=(7, -7, 5), rotation=(0.9, 0, 0.8))
 
     # Create lighting (sun + fill)
-    bpy.ops.object.light_add(type='SUN', location=(5, 5, 10))
+    result = bpy.ops.object.light_add(type='SUN', location=(5, 5, 10))
+    if result != {'FINISHED'}:
+        raise RuntimeError("Failed to create sun light")
     sun = bpy.context.active_object
+    if sun is None or sun.type != 'LIGHT':
+        raise RuntimeError("Sun light object not created properly")
     sun.data.energy = 5.0
 
-    bpy.ops.object.light_add(type='AREA', location=(-5, -5, 3))
+    result = bpy.ops.object.light_add(type='AREA', location=(-5, -5, 3))
+    if result != {'FINISHED'}:
+        raise RuntimeError("Failed to create fill light")
     fill = bpy.context.active_object
+    if fill is None or fill.type != 'LIGHT':
+        raise RuntimeError("Fill light object not created properly")
     fill.data.energy = 2.0
 
     # Create floor with custom material
-    bpy.ops.mesh.primitive_plane_add(size=20, location=(0, 0, 0))
+    result = bpy.ops.mesh.primitive_plane_add(size=20, location=(0, 0, 0))
+    if result != {'FINISHED'}:
+        raise RuntimeError("Failed to create floor plane")
     floor = bpy.context.active_object
+    if floor is None or floor.type != 'MESH':
+        raise RuntimeError("Floor plane object not created properly")
     floor_mat = create_material(name="Floor", color=(0.8, 0.8, 0.9, 1.0), roughness=0.1)
     floor.data.materials.append(floor_mat)
 

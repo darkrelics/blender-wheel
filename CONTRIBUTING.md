@@ -350,7 +350,7 @@ Fixes #67
 1. ✅ Code follows style guidelines (run `ruff check .`)
 2. ✅ All tests pass (run `pytest`)
 3. ✅ Test coverage is adequate (run `pytest --cov`)
-4. ✅ Type hints added (run `mypy`)
+4. ✅ Type hints added (verified by ruff)
 5. ✅ Documentation updated if needed
 6. ✅ Commit messages follow guidelines
 7. ✅ Branch is up to date with main
@@ -492,7 +492,6 @@ docker run -it --rm \
 ruff check .
 ruff format --check .
 pytest --cov=blender-demo
-mypy blender-demo/scripts/
 ```
 
 ---

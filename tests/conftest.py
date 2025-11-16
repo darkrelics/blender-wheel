@@ -4,9 +4,11 @@ from pathlib import Path
 
 import pytest
 
-# Add blender-demo to Python path for imports
+# Add blender-demo to Python path so we can import from scripts module
+# (Demo scripts are standalone, not an importable package)
 demo_path = Path(__file__).parent.parent / "blender-demo"
-sys.path.insert(0, str(demo_path))
+if str(demo_path) not in sys.path:
+    sys.path.insert(0, str(demo_path))
 
 
 @pytest.fixture
