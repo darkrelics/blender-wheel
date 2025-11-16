@@ -66,10 +66,7 @@ def test_buildspec_valid():
 
 def test_pyproject_toml_valid():
     """Test that pyproject.toml is valid."""
-    try:
-        import tomllib
-    except ImportError:
-        import tomli as tomllib
+    import tomllib
 
     pyproject_path = Path(__file__).parent.parent / "pyproject.toml"
     assert pyproject_path.exists(), "pyproject.toml not found"

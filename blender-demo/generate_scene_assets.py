@@ -299,6 +299,8 @@ def render_scene_angles(output_dir):
         rotation=(radians(65), 0, radians(45)),
         lens=35
     )
+    if cam1 is None:
+        raise RuntimeError("Failed to create camera")
     render_to_file(os.path.join(output_dir, "scene_wide.png"))
 
     # Camera angle 2: Close-up on character
