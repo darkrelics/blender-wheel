@@ -1,31 +1,67 @@
 # Blender Wheel
 
-This repository contains templates and configuration for building Blender 4.4 as a Python wheel package using AWS CodeBuild. This enables integration of Blender's 3D capabilities into Python projects.
+Build Blender 4.4 as a Python wheel package. Choose between automated AWS builds or local compilation. Integrate Blender's 3D capabilities into your Python projects.
 
 ## Overview
 
 The Blender wheel package provides the Blender Python API (bpy) as an importable Python module, allowing programmatic creation, manipulation, and rendering of 3D content using Blender's engine within Python applications.
 
+## 🚀 Quick Start
+
+### Option 1: Local Build (No AWS Required)
+
+```bash
+git clone https://github.com/darkrelics/blender-wheel.git
+cd blender-wheel
+./build_blender_wheel.sh
+pip install output/blender_bpy_module-4.4.whl
+```
+
+See [LOCAL_BUILD.md](LOCAL_BUILD.md) for details.
+
+### Option 2: AWS Build (Automated, Consistent)
+
+See [GETTING_STARTED.md](GETTING_STARTED.md) for AWS deployment.
+
+---
+
+**Complete Tutorial**: [GETTING_STARTED.md](GETTING_STARTED.md)
+- Building the wheel (AWS or local)
+- Installing and setup
+- Generating 3D assets
+- Integration examples
+
 ## Features
 
-- Build process for Blender 4.4 Python module using AWS CodeBuild
-- CloudFormation template for infrastructure setup
-- Build configuration for Blender 4.4
-- Produces a pip-installable wheel file
-- Support for Python 3.12
+- **Two build methods**: Local script or AWS CodeBuild
+- Blender 4.4 Python module (bpy)
+- Python 3.12 support
+- Pip-installable wheel package
+- Demo applications included
+- Complete test suite
 
-## Prerequisites
+## Build Methods
 
-- AWS Account with permissions to create CloudFormation stacks, IAM roles, and CodeBuild projects
-- S3 bucket for storing the built wheel file
-- Basic knowledge of AWS services
+### Local Build
+- **Script**: `build_blender_wheel.sh`
+- **Requirements**: Linux, Python 3.12, 20GB disk
+- **Time**: 45-60 minutes
+- **Cost**: Free
+- **Docs**: [LOCAL_BUILD.md](LOCAL_BUILD.md)
+
+### AWS Build
+- **Method**: CloudFormation + CodeBuild
+- **Requirements**: AWS account, S3 bucket
+- **Time**: 45-60 minutes
+- **Cost**: ~$0.50-$2 per build
+- **Docs**: [GETTING_STARTED.md](GETTING_STARTED.md)
 
 ## Deployment
 
 ### Using the AWS Console
 
 1. Navigate to the CloudFormation console in your AWS account
-2. Create a new stack and upload the `codebuild.yml` file
+2. Create a new stack and upload the `cf/codebuild.yml` file
 3. Provide the required parameters:
    - GitHub repository URL
    - Blender repository URL (default is set to the official Blender repo)
@@ -38,7 +74,7 @@ The Blender wheel package provides the Blender Python API (bpy) as an importable
 ```bash
 aws cloudformation create-stack \
   --stack-name blender-wheel-build \
-  --template-body file://codebuild.yml \
+  --template-body file://cf/codebuild.yml \
   --parameters \
     ParameterKey=OutputBucketName,ParameterValue=your-output-bucket \
     ParameterKey=GitHubSourceRepo,ParameterValue=https://github.com/yourusername/blender-wheel.git \
@@ -91,16 +127,50 @@ print("Render complete")
 
 ## Project Structure
 
-- `codebuild.yml` - CloudFormation template for setting up the CodeBuild project
-- `buildspec/blender-whl.yml` - Build specification for CodeBuild to compile Blender
+- `cf/codebuild.yml` - CloudFormation template for setting up the CodeBuild project
+- `buildspec.yml/blender-whl.yml` - Build specification for CodeBuild to compile Blender
+- `blender-demo/` - Demo applications showcasing Blender Python API usage
+- `tests/` - Test suite for validating project functionality
+- `pyproject.toml` - Project metadata and build configuration
 - `README.md` - This documentation file
+
+## Development
+
+### Running Tests
+
+Install development dependencies:
+
+```bash
+pip install -e ".[dev]"
+```
+
+Run the test suite:
+
+```bash
+pytest
+```
+
+Run with coverage:
+
+```bash
+pytest --cov=blender-demo --cov-report=html
+```
+
+### Code Quality
+
+Format code with ruff:
+
+```bash
+ruff check .
+ruff format .
+```
 
 ## Customization
 
 The build can be modified by editing the following files:
 
-- `buildspec/blender-whl.yml`: Modify build parameters, Python version, or dependencies
-- `codebuild.yml`: Adjust compute resources, environment variables, or timeout settings
+- `buildspec.yml/blender-whl.yml`: Modify build parameters, Python version, or dependencies
+- `cf/codebuild.yml`: Adjust compute resources, environment variables, or timeout settings
 
 ## Troubleshooting
 

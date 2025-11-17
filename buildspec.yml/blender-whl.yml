@@ -5,7 +5,7 @@ phases:
     python: 3.12
     commands:
       - apt-get update -y -q
-      - apt-get install -y -q python3.12 python3.12-dev python3.12-distutils
+      - apt-get install -y -q python3.12 python3.12-dev
       - apt-get install -y build-essential git cmake ninja-build git-lfs
   pre_build:
     commands:
@@ -20,7 +20,8 @@ phases:
   build:
     commands:
       - python3.12 ./build_files/utils/make_bpy_wheel.py ../build_linux_bpy/bin/
-      - mv ../bpy-*.whl ../blender_bpy_module.whl
+      - WHEEL_FILE=$(find .. -maxdepth 1 -name "bpy-*.whl" -type f -print -quit)
+      - if [ -n "$WHEEL_FILE" ]; then mv "$WHEEL_FILE" ../blender_bpy_module.whl; else echo "ERROR: Wheel not found" && exit 1; fi
   post_build:
     commands:
       - echo "Build complete."

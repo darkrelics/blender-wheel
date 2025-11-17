@@ -3,35 +3,27 @@
 Blender Animation Demo Script
 ----------------------------
 Creates a simple animated scene with keyframed objects.
+
+Usage:
+    Run from the blender-demo directory:
+        cd blender-demo
+        python animation_demo.py
+
+    Or specify PYTHONPATH:
+        PYTHONPATH=blender-demo python blender-demo/animation_demo.py
 """
 import os
-
-from math import radians, sin, cos, pi
+from math import cos, pi, radians, sin
 
 import bpy
 
-
-def reset_scene():
-    """Clear the current scene."""
-    bpy.ops.wm.read_factory_settings(use_empty=True)
-
-    # Remove default objects
-    if "Cube" in bpy.data.objects:
-        bpy.data.objects.remove(bpy.data.objects["Cube"])
-
-    # Set render settings
-    bpy.context.scene.render.engine = "CYCLES"
-    bpy.context.scene.cycles.samples = 64  # Lower samples for animation
-    bpy.context.scene.render.resolution_x = 1280
-    bpy.context.scene.render.resolution_y = 720
-    bpy.context.scene.render.resolution_percentage = 50
-
-    # Set frame range
-    bpy.context.scene.frame_start = 1
-    bpy.context.scene.frame_end = 120
-
-    # Set FPS
-    bpy.context.scene.render.fps = 30
+# Import from scripts module (works when running from blender-demo directory)
+from scripts.constants import (
+    DEFAULT_FRAME_END,
+    DEFAULT_FRAME_START,
+    DEFAULT_SAMPLES_PREVIEW,
+)
+from scripts.utils import create_material, reset_to_factory, setup_render_settings
 
 
 def setup_environment():
@@ -100,21 +92,6 @@ def setup_environment():
         principled_bsdf.inputs["Roughness"].default_value = 0.95
 
     plane.data.materials.append(ground_mat)
-
-
-def create_material(name, color, metallic=0.0, roughness=0.5):
-    """Create a material with the given properties."""
-    mat = bpy.data.materials.new(name=name)
-    mat.use_nodes = True
-    nodes = mat.node_tree.nodes
-
-    principled_bsdf = nodes.get("Principled BSDF")
-    if principled_bsdf:
-        principled_bsdf.inputs["Base Color"].default_value = color
-        principled_bsdf.inputs["Metallic"].default_value = metallic
-        principled_bsdf.inputs["Roughness"].default_value = roughness
-
-    return mat
 
 
 def create_bouncing_sphere():
@@ -303,7 +280,20 @@ def main():
     output_path = os.path.join(os.path.dirname(__file__), "output", "animation")
 
     # Reset the scene
-    reset_scene()
+    reset_to_factory()
+
+    # Setup render settings for animation
+    setup_render_settings(
+        resolution_x=1280,
+        resolution_y=720,
+        resolution_percentage=50,
+        samples=DEFAULT_SAMPLES_PREVIEW  # Lower samples for faster animation renders
+    )
+
+    # Set frame range
+    bpy.context.scene.frame_start = DEFAULT_FRAME_START
+    bpy.context.scene.frame_end = DEFAULT_FRAME_END
+    bpy.context.scene.render.fps = 30
 
     # Setup environment
     setup_environment()

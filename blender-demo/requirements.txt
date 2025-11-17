@@ -1,10 +1,19 @@
-# For a real project, you would specify the exact version of the wheel file
-# blender_bpy_module-4.4-py3-none-linux_x86_64.whl
-# 
-# Since we're using a local wheel file in this demo, we're listing it as a comment.
-# Install using:
-# pip install /path/to/blender_bpy_module-4.4.whl
+# Blender Demo Requirements
+# ===========================
+# Single source of truth: ../pyproject.toml
+#
+# To install all dependencies:
+#   pip install -e ..[dev]        (from project root - recommended)
+#
+# Or use this file for compatibility:
+#   pip install -r requirements.txt
+#
+# Note: Dependencies below are mirrored from pyproject.toml.
+# Update pyproject.toml when changing versions.
 
-# Common dependencies for working with Blender
-numpy>=1.24.0
-pillow>=10.0.0
+# Core dependencies (from pyproject.toml)
+numpy==1.26.4
+pillow==10.3.0
+
+# For local Blender wheel:
+# pip install /path/to/blender_bpy_module-4.4.whl

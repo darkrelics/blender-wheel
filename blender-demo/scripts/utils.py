@@ -4,14 +4,75 @@ Blender Python utilities
 -----------------------
 Common helper functions for working with Blender in Python.
 """
-import os
 import math
+import os
 from math import radians
+from typing import Any
 
 import bpy
 
+from .constants import (
+    COLOR_DARK_GRAY,
+    DEFAULT_CAMERA_CLIP_END,
+    DEFAULT_CAMERA_CLIP_START,
+    DEFAULT_CAMERA_LENS,
+    DEFAULT_GROUND_PLANE_SIZE,
+    DEFAULT_GROUND_ROUGHNESS,
+    DEFAULT_IOR,
+    DEFAULT_METALLIC,
+    DEFAULT_RENDER_ENGINE,
+    DEFAULT_RESOLUTION_PERCENTAGE,
+    DEFAULT_RESOLUTION_X,
+    DEFAULT_RESOLUTION_Y,
+    DEFAULT_ROUGHNESS,
+    DEFAULT_SAMPLES,
+    DEFAULT_SPECULAR,
+    DEFAULT_TRANSMISSION,
+    IMAGE_FORMAT_PNG,
+    INTERPOLATION_BEZIER,
+    LIGHT_SETUP_THREE_POINT,
+)
 
-def reset_to_factory():
+
+def safe_ops_call(op_function, expected_type: str | None = None, error_msg: str | None = None, **kwargs):
+    """
+    Safely execute a bpy.ops operation with error checking.
+
+    Args:
+        op_function: The bpy.ops function to call
+        expected_type: Expected type of the created object ('MESH', 'LIGHT', 'CAMERA', etc.)
+        error_msg: Custom error message (default: auto-generated)
+        **kwargs: Arguments to pass to the operation
+
+    Returns:
+        The created object (from bpy.context.active_object)
+
+    Raises:
+        RuntimeError: If the operation fails or doesn't create expected object type
+
+    Example:
+        >>> light = safe_ops_call(bpy.ops.object.light_add, 'LIGHT', type='SUN', location=(0, 0, 5))
+    """
+    result = op_function(**kwargs)
+
+    if result != {'FINISHED'}:
+        msg = error_msg or f"Operation {op_function.__name__} failed with result: {result}"
+        raise RuntimeError(msg)
+
+    if expected_type is not None:
+        obj = bpy.context.active_object
+        if obj is None:
+            msg = error_msg or f"No active object after {op_function.__name__}"
+            raise RuntimeError(msg)
+        if obj.type != expected_type:
+            msg = error_msg or f"Expected {expected_type}, got {obj.type} from {op_function.__name__}"
+            raise RuntimeError(msg)
+        return obj
+
+    return bpy.context.active_object
+
+
+def reset_to_factory() -> bool:
     """Reset Blender to factory settings and remove default objects."""
     bpy.ops.wm.read_factory_settings(use_empty=True)
 
@@ -26,8 +87,13 @@ def reset_to_factory():
 
 
 def setup_render_settings(
-    engine="CYCLES", resolution_x=1920, resolution_y=1080, resolution_percentage=100, samples=128, use_transparent_bg=False
-):
+    engine: str = DEFAULT_RENDER_ENGINE,
+    resolution_x: int = DEFAULT_RESOLUTION_X,
+    resolution_y: int = DEFAULT_RESOLUTION_Y,
+    resolution_percentage: int = DEFAULT_RESOLUTION_PERCENTAGE,
+    samples: int = DEFAULT_SAMPLES,
+    use_transparent_bg: bool = False
+) -> bool:
     """Set up render settings."""
     bpy.context.scene.render.engine = engine
     bpy.context.scene.render.resolution_x = resolution_x
@@ -42,7 +108,13 @@ def setup_render_settings(
     return True
 
 
-def setup_camera(location=(0, -10, 5), rotation=(radians(60), 0, 0), lens=35, clip_start=0.1, clip_end=100):
+def setup_camera(
+    location: tuple[float, float, float] = (0, -10, 5),
+    rotation: tuple[float, float, float] = (radians(60), 0, 0),
+    lens: float = DEFAULT_CAMERA_LENS,
+    clip_start: float = DEFAULT_CAMERA_CLIP_START,
+    clip_end: float = DEFAULT_CAMERA_CLIP_END
+) -> bpy.types.Object:
     """Create and set up a camera."""
     bpy.ops.object.camera_add(location=location)
     camera = bpy.context.active_object
@@ -59,9 +131,9 @@ def setup_camera(location=(0, -10, 5), rotation=(radians(60), 0, 0), lens=35, cl
     return camera
 
 
-def setup_lighting(light_setup="three_point"):
+def setup_lighting(light_setup: str = LIGHT_SETUP_THREE_POINT) -> list[bpy.types.Object]:
     """Set up common lighting setups."""
-    lights = []
+    lights: list[bpy.types.Object] = []
 
     if light_setup == "three_point":
         # Key light
@@ -131,7 +203,12 @@ def setup_lighting(light_setup="three_point"):
     return lights
 
 
-def create_ground_plane(size=20, location=(0, 0, 0), color=(0.2, 0.2, 0.2, 1.0), roughness=0.9):
+def create_ground_plane(
+    size: float = DEFAULT_GROUND_PLANE_SIZE,
+    location: tuple[float, float, float] = (0, 0, 0),
+    color: tuple[float, float, float, float] = COLOR_DARK_GRAY,
+    roughness: float = DEFAULT_GROUND_ROUGHNESS
+) -> bpy.types.Object:
     """Create a ground plane with material."""
     bpy.ops.mesh.primitive_plane_add(size=size, location=location)
     plane = bpy.context.active_object
@@ -153,8 +230,14 @@ def create_ground_plane(size=20, location=(0, 0, 0), color=(0.2, 0.2, 0.2, 1.0),
 
 
 def create_material(
-    name="New Material", color=(0.8, 0.8, 0.8, 1.0), metallic=0.0, roughness=0.5, specular=0.5, transmission=0.0, ior=1.45
-):
+    name: str = "New Material",
+    color: tuple[float, float, float, float] = (0.8, 0.8, 0.8, 1.0),
+    metallic: float = DEFAULT_METALLIC,
+    roughness: float = DEFAULT_ROUGHNESS,
+    specular: float = DEFAULT_SPECULAR,
+    transmission: float = DEFAULT_TRANSMISSION,
+    ior: float = DEFAULT_IOR
+) -> bpy.types.Material:
     """Create a material with specified properties."""
     mat = bpy.data.materials.new(name=name)
     mat.use_nodes = True
@@ -172,7 +255,13 @@ def create_material(
     return mat
 
 
-def create_object(obj_type="CUBE", size=1, location=(0, 0, 0), rotation=(0, 0, 0), material=None):
+def create_object(
+    obj_type: str = "CUBE",
+    size: float = 1,
+    location: tuple[float, float, float] = (0, 0, 0),
+    rotation: tuple[float, float, float] = (0, 0, 0),
+    material: bpy.types.Material | None = None
+) -> bpy.types.Object:
     """Create an object of the specified type."""
     if obj_type == "CUBE":
         bpy.ops.mesh.primitive_cube_add(size=size, location=location, rotation=rotation)
@@ -196,7 +285,7 @@ def create_object(obj_type="CUBE", size=1, location=(0, 0, 0), rotation=(0, 0, 0
     return obj
 
 
-def apply_modifiers(obj, modifiers_dict):
+def apply_modifiers(obj: bpy.types.Object, modifiers_dict: dict[str, dict[str, Any]]) -> bpy.types.Object:
     """Apply modifiers to an object.
 
     Args:
@@ -219,33 +308,102 @@ def apply_modifiers(obj, modifiers_dict):
     return obj
 
 
-def save_file(filepath):
-    """Save the current Blender file."""
+def save_file(filepath: str) -> bool:
+    """Save the current Blender file.
+
+    Args:
+        filepath: Path where to save the .blend file
+
+    Returns:
+        True if successful, False otherwise
+
+    Raises:
+        ValueError: If filepath is invalid
+        OSError: If directory cannot be created or file cannot be saved
+    """
+    if not filepath:
+        raise ValueError("filepath cannot be empty")
+
     # Ensure directory exists
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    directory = os.path.dirname(filepath)
+    if directory:
+        try:
+            os.makedirs(directory, exist_ok=True)
+        except OSError as e:
+            raise OSError(f"Failed to create directory {directory}: {e}") from e
 
     # Save file
-    bpy.ops.wm.save_as_mainfile(filepath=filepath)
+    try:
+        bpy.ops.wm.save_as_mainfile(filepath=filepath)
+    except Exception as e:
+        raise OSError(f"Failed to save file {filepath}: {e}") from e
+
+    # Verify file was created
+    if not os.path.exists(filepath):
+        raise OSError(f"File was not created at {filepath}")
 
     return True
 
 
-def render_to_file(output_path, file_format="PNG"):
-    """Render the current scene to a file."""
+def render_to_file(output_path: str, file_format: str = IMAGE_FORMAT_PNG) -> bool:
+    """Render the current scene to a file.
+
+    Args:
+        output_path: Path where to save the rendered image
+        file_format: Image format (PNG, JPEG, etc.)
+
+    Returns:
+        True if successful
+
+    Raises:
+        ValueError: If output_path is invalid or file_format unsupported
+        OSError: If directory cannot be created
+        RuntimeError: If rendering fails
+    """
+    if not output_path:
+        raise ValueError("output_path cannot be empty")
+
+    valid_formats = ['PNG', 'JPEG', 'BMP', 'TIFF', 'OPEN_EXR', 'HDR']
+    if file_format not in valid_formats:
+        raise ValueError(f"Invalid file_format '{file_format}'. Must be one of: {valid_formats}")
+
     # Ensure directory exists
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    directory = os.path.dirname(output_path)
+    if directory:
+        try:
+            os.makedirs(directory, exist_ok=True)
+        except OSError as e:
+            raise OSError(f"Failed to create directory {directory}: {e}") from e
 
     # Set render settings
-    bpy.context.scene.render.filepath = output_path
-    bpy.context.scene.render.image_settings.file_format = file_format
+    try:
+        bpy.context.scene.render.filepath = output_path
+        bpy.context.scene.render.image_settings.file_format = file_format
+    except Exception as e:
+        raise ValueError(f"Failed to set render settings: {e}") from e
 
     # Render
-    bpy.ops.render.render(write_still=True)
+    try:
+        bpy.ops.render.render(write_still=True)
+    except Exception as e:
+        raise RuntimeError(f"Rendering failed: {e}") from e
+
+    # Verify output was created
+    if not os.path.exists(output_path):
+        raise RuntimeError(f"Render output was not created at {output_path}")
 
     return True
 
 
-def animate_property(obj, property_path, start_frame, end_frame, start_value, end_value, interpolation="BEZIER"):
+def animate_property(
+    obj: Any,
+    property_path: str,
+    start_frame: int,
+    end_frame: int,
+    start_value: Any,
+    end_value: Any,
+    interpolation: str = INTERPOLATION_BEZIER
+) -> bool:
     """Animate a property from start_value to end_value over frame range."""
     # Set start keyframe
     bpy.context.scene.frame_set(start_frame)
@@ -292,14 +450,14 @@ def animate_property(obj, property_path, start_frame, end_frame, start_value, en
     return True
 
 
-def get_object_by_name(name):
+def get_object_by_name(name: str) -> bpy.types.Object | None:
     """Get a Blender object by name."""
     if name in bpy.data.objects:
         return bpy.data.objects[name]
     return None
 
 
-def set_scene_frame(frame):
+def set_scene_frame(frame: int) -> bool:
     """Set the current scene frame."""
     bpy.context.scene.frame_set(frame)
     return True

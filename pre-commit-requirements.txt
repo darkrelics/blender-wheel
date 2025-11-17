@@ -1,0 +1,8 @@
+# Pre-commit hook requirements
+# Install with: pip install -r pre-commit-requirements.txt
+
+pre-commit==4.4.0
+
+# Required for local pytest hook
+pytest==9.0.1
+pytest-cov==7.0.0
